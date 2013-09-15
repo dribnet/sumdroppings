@@ -18,10 +18,7 @@ object WordStreamer {
     val src: Producer[Scalding, String] = null
     val dst: ScaldingStore[String, Long] = null
     var ws: WaitingState[Date] = null
-    // Oops, this doesn't work
-    // val counter = wordCount(src, dst)
-    // Let's use this as a placeholder
-    val counter: PipeFactory[_] = null
+    val counter = wordCount(src, dst)
     ws = new Scalding("wordcount").run(ws, Local(true), counter)
   }
 
