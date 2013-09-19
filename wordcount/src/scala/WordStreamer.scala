@@ -7,6 +7,19 @@ import com.twitter.summingbird.scalding._
 import com.twitter.scalding._
 import com.twitter.summingbird.batch._
 import java.util.Date
+import com.twitter.algebird.Interval
+
+// This is not really usable, just a mock that does the same state over and over
+class LoopState[T](init: Interval[T]) extends WaitingState[T] { self =>
+  def begin = new RunningState[T] {
+    def part = self.init
+    def succeed(nextStart: Interval[T]) = self
+    def fail(err: Throwable) = {
+      println(err)
+      self
+    }
+  }
+}
 
 object WordStreamer {
 
@@ -30,8 +43,8 @@ object WordStreamer {
       3, batcher)(null)(identity)
     // val istore = VersionedBatchStore[String, Long]("myStorePath", 3)(_._2)(identity)
     val store: Scalding#Store[String,Long] = new InitialBatchedStore(batcher.currentBatch - 2L, vbs)
-    //TODO: need a real WaitingState
-    var ws: WaitingState[Date] = null
+    val intr = Interval.leftClosedRightOpen(0L, 5L)
+    var ws: WaitingState[java.util.Date] = new LoopState(intr.mapNonDecreasing(t => new Date(t)))
     val counter = wordCount[Scalding](src, store)
     ws = new Scalding("wordcount").run(ws, Local(true), counter)
   }
