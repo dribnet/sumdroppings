@@ -21,8 +21,10 @@ object WordStreamer {
     val input = args(0)
     val output = args(1)
     println ("Running: " + input + " --> " + output)
-    val src: Producer[Scalding, String] =
-      Producer.source(Scalding.pipeFactoryExact[String]( _ => TextLine("pathToInput")))
+    // dummy extractor
+    implicit def extractor[T]: TimeExtractor[T] = TimeExtractor(_ => 0L)
+    val src =
+      Producer.source[Scalding, String](Scalding.pipeFactoryExact[String]( _ => TextLine("pathToInput")))
     val istore = VersionedBatchStore[String, Long](output, 3)(_._2)
     implicit val batcher: Batcher = Batcher.ofHours(1)
     val store = new InitialBatchedStore(batcher.currentBatch - 2L, istore)
