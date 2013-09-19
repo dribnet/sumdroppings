@@ -23,14 +23,16 @@ object WordStreamer {
     println ("Running: " + input + " --> " + output)
     // dummy extractor
     implicit def extractor[T]: TimeExtractor[T] = TimeExtractor(_ => 0L)
-    val src =
+    val src: Producer[Scalding, String] =
       Producer.source[Scalding, String](Scalding.pipeFactoryExact[String]( _ => TextLine("pathToInput")))
-    val istore = VersionedBatchStore[String, Long](output, 3)(_._2)
-    implicit val batcher: Batcher = Batcher.ofHours(1)
-    val store = new InitialBatchedStore(batcher.currentBatch - 2L, istore)
+    val batcher: Batcher = Batcher.ofHours(1)
+    val vbs = new VersionedBatchStore[String, Long, String, Long](output,
+      3, batcher)(null)(identity)
+    // val istore = VersionedBatchStore[String, Long]("myStorePath", 3)(_._2)(identity)
+    val store: Scalding#Store[String,Long] = new InitialBatchedStore(batcher.currentBatch - 2L, vbs)
     //TODO: need a real WaitingState
     var ws: WaitingState[Date] = null
-    val counter = wordCount(src, store)
+    val counter = wordCount[Scalding](src, store)
     ws = new Scalding("wordcount").run(ws, Local(true), counter)
   }
 
