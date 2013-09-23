@@ -8,6 +8,7 @@
                  [com.twitter/summingbird-core_2.9.3 "0.1.4"]
                  [com.twitter/summingbird-scalding_2.9.3 "0.1.4"]
                  [com.twitter/summingbird-batch_2.9.3 "0.1.4"]
+                 [com.twitter/summingbird-builder_2.9.3 "0.1.4"]
                  [org.apache.hadoop/hadoop-core "1.1.2"]]
   :scala-source-path "src/scala"
   :prep-tasks ["scalac"]
