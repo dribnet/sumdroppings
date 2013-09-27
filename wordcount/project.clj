@@ -12,5 +12,6 @@
                  [org.apache.hadoop/hadoop-core "1.1.2"]]
   :scala-source-path "src/scala"
   :prep-tasks ["scalac"]
+  :uberjar-name "wordcount.jar"
   :main net.drib.sumdroppings.wordcount.WordStreamer)
 

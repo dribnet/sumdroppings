@@ -23,7 +23,9 @@ class LoopState[T](init: Interval[T]) extends WaitingState[T] { self =>
   }
 }
 
-
+/*
+ * NOT YET WORKING
+ *
 class WordStreamer(env: Env) extends AbstractJob(env) {
   val name = "WordStreamer"
   import WordStreamer._  // assumed to hold flatmapper and sources
@@ -51,6 +53,7 @@ class WordStreamer(env: Env) extends AbstractJob(env) {
   // implicit val batcher: Batcher = Batcher.ofHours(2)
   // Now, job creation is easy!
 }
+ */
 
 object WordStreamer {
 
@@ -62,24 +65,24 @@ object WordStreamer {
         .sumByKey(store)
 
   def main(args: Array[String]) {
-    val input = if (args.length > 0) args(0) else "/user/tom/hqha/part-00000"
-    val output = if (args.length > 1) args(1) else "/user/tom/testout.txt"
-    println ("Running: " + input + " --> " + output)
+    val inout = if (args.length > 0) args(0) else "/user/tom/sumit"
+    println ("Running: " + inout)
     // dummy extractor
     implicit def extractor[T]: TimeExtractor[T] = TimeExtractor(_ => 5L)
     val src: Producer[Scalding, String] =
-      Producer.source[Scalding, String](Scalding.pipeFactoryExact[String]( _ => TextLine("pathToInput")))
-    // val batcher: Batcher = Batcher.ofHours(1)
-    var batcher = Batcher.unit
-    val vbs = new VersionedBatchStore[String, Long, String, Long](output,
+      Producer.source[Scalding, String](Scalding.pipeFactoryExact[String]( _ => TextLine(inout)))
+    val batcher: Batcher = Batcher.ofHours(1)
+    // var batcher = Batcher.unit
+    val vbs = new VersionedBatchStore[String, Long, String, Long](inout,
       3, batcher)(null)(identity)
     // val istore = VersionedBatchStore[String, Long]("myStorePath", 3)(_._2)(identity)
     val store: Scalding#Store[String,Long] = new InitialBatchedStore(batcher.currentBatch - 2L, vbs)
-    val intr = Interval.leftClosedRightOpen(new Date(0L), new Date(5L))
+    val intr = Interval.leftClosedRightOpen(new Date(System.currentTimeMillis() - 2*1000*60*60), new Date())
     var ws: WaitingState[java.util.Date] = new LoopState(intr)
     val counter = wordCount[Scalding](src, store)
-    var conf = new Configuration;
-    ws = new Scalding("wordcount").run(ws, Hdfs(true, conf), counter)
+    val mode = Hdfs(true, new Configuration)
+    val scald = new Scalding("wordcount")
+    ws = scald.run(ws, mode, counter)
   }
 
 }
